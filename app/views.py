@@ -1,7 +1,7 @@
 from django.shortcuts import render ,redirect
-from .models import Category , Product
+from .models import Category , Product, Comment
 from django.http import JsonResponse
-from app.forms import ProductModelForm,OrderModelForm
+from app.forms import ProductModelForm,OrderModelForm, CommentModelForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
@@ -39,11 +39,15 @@ def index(request,category_id = None):
 
 def detail(request,product_id):
     product = Product.objects.get(id = product_id)
+    comments = Comment.objects.filter(product=product).order_by('-created_at')
+
     if not product:
         return JsonResponse(data={'message':'Oops. Page Not Found','status_code':404})
     
     context = {
-        'product' : product
+        'product': product,
+        'comments': comments,
+        'latest_comments': comments[3:] 
     }
     return render(request,'app/detail.html',context)
 
@@ -104,36 +108,24 @@ def update_product(request,pk):
     }
     return render(request,'app/update.html',context)
 
-
-
-
 def create_order(request,pk):
     product = get_object_or_404(Product,pk=pk)
 
     if request.method == 'POST':
-        print('Order Post sending ....')
         form = OrderModelForm(request.POST)
         if form.is_valid():
-            print('form valid')
             order = form.save(commit=False)
             order.product = product
+            
             if order.quantity > product.stock:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    'Dont enough quantity'
-                ) 
+                messages.add_message(request, messages.ERROR, 'Dont enough quantity', extra_tags='order') 
             else:
                 product.stock -= order.quantity 
-                print('order valid ')
                 product.save()
                 order.save()
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    'Order successfully sent✅'
-                ) 
-                return redirect('app:detail',product_id)
+                messages.add_message(request, messages.SUCCESS, 'Order successfully sent✅', extra_tags='order') 
+        else: 
+            print(form.errors)
     else:
         form = OrderModelForm()
 
@@ -141,5 +133,26 @@ def create_order(request,pk):
         'form':form,
         'product':product
     }
-
     return render(request,'app/detail.html',context)
+
+# comment_list ni bajarib keling
+def create_comment(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+
+    if request.method == 'POST':
+        form = CommentModelForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.product = product
+            comment.save()
+            messages.add_message(request, messages.SUCCESS, 'Comment successfully sent', extra_tags='comment')
+        else:
+            print(form.errors)
+    else:
+        form = CommentModelForm()
+
+    context = {
+        'product': product,
+        'comments': Comment.objects.filter(product=product).order_by('-created_at'),
+    }
+    return render(request, 'app/detail.html', context)

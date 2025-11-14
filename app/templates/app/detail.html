@@ -13,16 +13,47 @@
                 <div class="row gx-4 gx-lg-5 align-items-center">
                     <div class="col-md-6"><img class="card-img-top mb-5 mb-md-0" src="{{product.get_image_url}}" alt="..." /></div>
                     <div class="col-md-6">
-                        <form method="post" action="{% url 'app:delete' product.id %}">
-                            {%csrf_token%}
-                            <button type="submit" class="btn btn-outline-danger">Delete</button>
+                        <form method="post" action="{% url 'app:delete' product.id %}" id="deleteForm">
+                            {% csrf_token %}
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                                Delete
+                            </button>
                         </form>
+
+                        <!-- Modal oynasi -->
+                        <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm deletion</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete this product?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Yes, delete it</button>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+
+                        <!-- Bootstrap JS (CDN orqali) -->
+                        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+                        <script>
+                        // Modal ichidagi "Ha, o‘chir" tugmasi bosilganda formni yuborish
+                        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+                            document.getElementById('deleteForm').submit();
+                        });
+                        </script>
 
                         <a href="{% url 'app:update' product.id %}">
                             <button type="submit" class="btn btn-outline-secondary">Edit</button>
                         </a>
 
-                        <div class="small mb-1">Stock : {{product.stock}} </div>
+                        <div class="small mb-1">Stock: {{product.stock}} </div>
                         <h1 class="display-5 fw-bolder">{{product.name}}</h1>
                         <div class="fs-5 mb-5">
                             {% if product.discount %}
@@ -33,16 +64,19 @@
                             {%endif%}
                         </div>
                         <p class="lead">{{product.description}}</p>
+                        
                         <div class="d-flex">
-                            <form method="post" action="{% url 'app:create_order' product.id %}">
-                                {%csrf_token%}
+                            <form method="post" action="{% url 'app:create_order' product.id %}" id="orderForm">
+                                {% csrf_token %}
                                 <div class="form-group">
                                     <h2>Place an order</h2>
                                 </div>
+
                                 <div class="form-group mb-3">
-                                  <label for="formGroupExampleInput">Your name</label>
-                                  <input type="text" name="name" class="form-control"  placeholder="Your name">
+                                  <label for="formGroupExampleInput2">Your name</label>
+                                  <input type="text" name="name" class="form-control" placeholder="Your name">
                                 </div>
+
                                 <div class="form-group mb-3">
                                   <label for="formGroupExampleInput2">Your phone</label>
                                   <input type="text" name="phone" class="form-control" placeholder="Your phone">
@@ -50,21 +84,20 @@
 
                                 <div class="form-group mb-3">
                                   <label for="formGroupExampleInput2">Quantity</label>
-                                  <input type="number" name="qauntity" class="form-control" placeholder="Quantity">
+                                  <input type="number" name="quantity" class="form-control" placeholder="Quantity">
                                 </div>
-        
-                               
-                                  <div class="form-group mb-3">
-                                   
-                                    <input type="submit" class="btn btn-success" value="Send">
-                                  </div>
-                                  {% if messages %}
-                                    {% for message in messages %}
-                                        <div class="message">{{ message }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                              </form>
                                 
+                                <div class="form-group mb-3">
+                                    <button type="submit" class="btn btn-success">Send</button>
+                                </div>
+                                
+                                {% for message in messages %}
+                                    {% if "order" in message.tags %}
+                                        <div class="message">{{ message }}</div>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                            </form>      
                         </div>
                     </div>
                 </div>
@@ -72,68 +105,94 @@
         </section>
 
         <div class="container mt-4 mb-4">
-            <div class="row">
-                <div class="col-12">
-                    <div class="text-center">
-                        <h2>Latest comments</h2>
-                    </div>
-
-                    <div class="media card p-4 mt-2">
-                        <div class="media-body">
-                          <h3 class="mt-0">John Doe</h3>
-                          Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
-                        </div>
-                    </div>
-
-                    <div class="media card p-4 mt-2">
-                        <div class="media-body">
-                          <h3 class="mt-0">John Doe</h3>
-                          Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
-                        </div>
-                    </div>
-
-                    <div class="media card p-4 mt-2">
-                        <div class="media-body">
-                          <h3 class="mt-0">John Doe</h3>
-                          Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
-                        </div>
-                    </div>
-
+            <div class="col-12">
+                <div class="text-center">
+                    <h2>Latest comments</h2>
                 </div>
 
+                {# --- Faqat 3 ta comment ko‘rsatamiz --- #}
+                {% for comment in comments|slice:":3" %}
+                    <div class="media card p-4 mt-2">
+                        <div class="media-body">
+                            <h3 class="mt-0">{{ comment.name }}</h3>
+                            {{ comment.comment }}
+                        </div>
+                    </div>
+                {% endfor %}
+
+                {# --- Qolgani yashirin --- #}
+                <div id="more-comments" style="display:none;">
+                    {% for comment in comments|slice:"3:" %}
+                        <div class="media card p-4 mt-2">
+                            <div class="media-body">
+                                <h3 class="mt-0">{{ comment.name }}</h3>
+                                {{ comment.comment }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {# --- Agar 3 tadan ko‘p bo‘lsa tugma chiqadi --- #}
+                {% if comments|length > 3 %}
+                <div class="text-center mt-3">
+                    <button class="btn btn-link" id="toggle-btn">Barchasini ko‘rish</button>
+                </div>
+                {% endif %}
+            </div>
+
+            <script>
+                const more = document.getElementById("more-comments");
+                const btn = document.getElementById("toggle-btn");
+
+                btn?.addEventListener("click", () => {
+                    if (more.style.display === "none") {
+                        more.style.display = "block";
+                        btn.textContent = "Yopish";
+                    } else {
+                        more.style.display = "none";
+                        btn.textContent = "Barchasini ko‘rish";
+                    }
+                });
+            </script>
+
                 <div class="col-8 offset-2 mt-5">
-                   
                     <div class=" p-5">
                         <div class="text-center">
                             <h3>Add Comment</h3>
                         </div>
-                    
-                    <form>
-                        <div class="form-group mb-3">
-                          <label for="formGroupExampleInput">Your name</label>
-                          <input type="text" class="form-control"  placeholder="Your name">
-                        </div>
-                        <div class="form-group mb-3">
-                          <label for="formGroupExampleInput2">Your email</label>
-                          <input type="text" class="form-control" placeholder="Your email">
-                        </div>
+                        
+                        <form method="POST" action="{% url 'app:create_comment' product.id %}" id="commentForm">
+                            {% csrf_token %}
+			                <div class="form-group mb-3">
+                                <label for="formGroupExampleInput2">Your name</label>
+                                <input type="text" name="name" class="form-control"  placeholder="Your name">
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="formGroupExampleInput2">Your email</label>
+                                <input type="text" name="email" class="form-control" placeholder="Your email">
+                            </div>
 
-                        <div class="form-group mb-3">
-                            <label for="formGroupExampleInput2">Your comment</label>
-                           <textarea name="" class="form-control" id="" cols="30" rows="10"></textarea>
-                          </div>
+                            <div class="form-group mb-3">
+                                <label for="formGroupExampleInput2">Your comment</label>
+                                <textarea name="comment" class="form-control" id="id_comment" cols="30" rows="10"></textarea>
+                            </div>
 
-                          <div class="form-group mb-3">
-                           
-                            <input type="text" class="btn btn-success" value="Send">
-                          </div>
-                      </form>
-
+                            <div class="form-group mb-3">
+                                <button type="submit" class="btn btn-success">Send</button>
+                            </div>
+                            
+                            {% for message in messages %}
+                                {% if "comment" in message.tags %}
+                                    <div class="message">{{ message }}</div>
+                                {% endif %}
+                            {% endfor %}
+                        </form>
                     </div>
-                      
                 </div>
             </div>
         </div>
+
         <!-- Related items section-->
         <section class="py-5 bg-light">
             <div class="container px-4 px-lg-5 mt-5">
