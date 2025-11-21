@@ -36,6 +36,9 @@ class Product(BaseModel):
                                  related_name='products',
                                  null=True,blank=True)    
     
+    class Meta:
+        ordering = ['id']
+
     @property
     def discounted_price(self):
         if self.discount:
@@ -76,8 +79,26 @@ class Order(BaseModel):
         return f'{self.name} : {self.phone}'
     
 class Comment(BaseModel):
+    class RatingChoices(models.IntegerChoices):
+        ONE = 1, '⭐ 1'
+        TWO = 2, '⭐⭐ 2'
+        THREE = 3, '⭐⭐⭐ 3'
+        FOUR = 4, '⭐⭐⭐⭐ 4'
+        FIVE = 5, '⭐⭐⭐⭐⭐ 5'
+    
     name = models.CharField(max_length=255)
     email = models.EmailField()
-    comment = models.TextField()
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    message = models.TextField()
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='comments')
+    image = models.ImageField(upload_to='comments/%Y/%m/%d/', null=True, blank=True)
+    rating = models.PositiveSmallIntegerField(choices = RatingChoices.choices, default = RatingChoices.FIVE)
+    is_handle = models.BooleanField(default=False)
 
+    def __str__(self):
+        return f'{self.name} - {self.message}'
+    
+    @property
+    def get_image_url(self):
+        if not self.image:
+            return static('app/images/not_found_image.avif')
+        return self.image.url

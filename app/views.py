@@ -7,11 +7,13 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from app.utils import filter_by_price
-
+from django.db.models import Avg
+from django.core.mail import send_mail
+from django.conf import settings
 
 # Create your views here.
 
-def index(request,category_id = None):
+def index(request, category_id = None):
     search_query = request.GET.get('q','')
     filter_type = request.GET.get('filter_type','')
     
@@ -23,31 +25,40 @@ def index(request,category_id = None):
         products = Product.objects.all()
         
     if search_query:
-        products = products.filter(Q(name__icontains = search_query) | Q(description__icontains=search_query))
+        products = products.filter(
+            Q(name__icontains = search_query) | 
+            Q(description__icontains=search_query)
+        )
 
     products = filter_by_price(filter_type,products)
     
-    
-    
+    products = products.annotate(
+        avg_rating = Avg('comments__rating')
+    )
+
     context = {
-        'categories':categories,
-        'products':products
+        'categories': categories,
+        'products': products
     }
     return render(request,'app/home.html',context)
 
 
 
-def detail(request,product_id):
+def detail(request, product_id):
     product = Product.objects.get(id = product_id)
-    comments = Comment.objects.filter(product=product).order_by('-created_at')
+    related_products = Product.objects.filter(category = product.category).exclude(id=product_id)
+    comments = product.comments.filter(is_handle=False).order_by('-created_at')
 
     if not product:
         return JsonResponse(data={'message':'Oops. Page Not Found','status_code':404})
     
+    avg_rating = comments.aggregate(Avg('rating'))['rating__avg'] or 0
+
     context = {
         'product': product,
         'comments': comments,
-        'latest_comments': comments[3:] 
+        'related_products': related_products,
+        'avg_rating': avg_rating, 
     }
     return render(request,'app/detail.html',context)
 
@@ -135,12 +146,11 @@ def create_order(request,pk):
     }
     return render(request,'app/detail.html',context)
 
-# comment_list ni bajarib keling
 def create_comment(request, pk):
     product = get_object_or_404(Product, pk=pk)
 
     if request.method == 'POST':
-        form = CommentModelForm(request.POST)
+        form = CommentModelForm(request.POST, request.FILES)
         if form.is_valid():
             comment = form.save(commit=False)
             comment.product = product
@@ -156,3 +166,23 @@ def create_comment(request, pk):
         'comments': Comment.objects.filter(product=product).order_by('-created_at'),
     }
     return render(request, 'app/detail.html', context)
+
+def contact(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        message = request.POST.get('message')
+
+        full_message = f"From: {name} <{email}>\n\nMessage:\n{message}"
+
+        send_mail(
+            subject = f"Contact Me: {name}",
+            message = full_message,
+            from_email = settings.DEFAULT_FROM_EMAIL,
+            recipient_list = ['muminovnodirjon3@gmail.com'],
+            fail_silently = False,
+        )
+
+        messages.success(request, "Your message has been sent successfully!")
+        return redirect('app:contact')
+    return render(request, 'app/contact.html')

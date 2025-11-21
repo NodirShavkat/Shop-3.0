@@ -1,5 +1,5 @@
 from django import forms
-from .models import Product,Order, Comment
+from .models import Product, Order, Comment
 
 # forms.Form
 # forms.ModelForm

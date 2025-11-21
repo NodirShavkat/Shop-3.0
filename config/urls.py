@@ -5,6 +5,7 @@ from django.conf import settings
 
 
 urlpatterns = [
+    path('baton/', include('baton.urls')),
     path('admin/', admin.site.urls),
     path('',include('app.urls',namespace='app')),
     path('todo/',include('app.urls',namespace='app'))

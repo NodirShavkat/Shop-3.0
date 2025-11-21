@@ -62,14 +62,20 @@
                                     <div class="text-center">
                                         <!-- Product name-->
                                         <h5 class="fw-bolder">{{product.name}}</h5>
-                                        <!-- Product reviews-->
-                                        <div class="d-flex justify-content-center small text-warning mb-2">
+                                        
+                                        <!-- Product retings-->
+                                        {% comment %} <div class="d-flex justify-content-center small text-warning mb-2">
                                             <div class="bi-star-fill"></div>
                                             <div class="bi-star-fill"></div>
                                             <div class="bi-star-fill"></div>
                                             <div class="bi-star-fill"></div>
                                             <div class="bi-star-fill"></div>
-                                        </div>
+                                        </div> {% endcomment %}
+
+                                        <p class="text-center mb-2 text-muted">
+                                            Rating: {{ product.avg_rating|default:0|floatformat:1 }}
+                                        </p>
+
                                         <!-- Product price-->
                                         {% if product.discount %}
                                             <span class="text-muted text-decoration-line-through">${{product.price}}</span>

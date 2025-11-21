@@ -55,6 +55,7 @@
 
                         <div class="small mb-1">Stock: {{product.stock}} </div>
                         <h1 class="display-5 fw-bolder">{{product.name}}</h1>
+                        <p>Average Rating: {{ avg_rating|floatformat:1 }}</p>
                         <div class="fs-5 mb-5">
                             {% if product.discount %}
                                 <span class="text-muted text-decoration-line-through">${{product.price}}</span>
@@ -107,15 +108,17 @@
         <div class="container mt-4 mb-4">
             <div class="col-12">
                 <div class="text-center">
-                    <h2>Latest comments</h2>
+                    <h2>Latest comments( {{comments.count}} )</h2>
                 </div>
 
                 {# --- Faqat 3 ta comment ko‘rsatamiz --- #}
                 {% for comment in comments|slice:":3" %}
                     <div class="media card p-4 mt-2">
                         <div class="media-body">
-                            <h3 class="mt-0">{{ comment.name }}</h3>
-                            {{ comment.comment }}
+                            <h3 class="mt-0">{{ comment.name }} </h3>
+                            {{ comment.message }} <br>
+                            <img src="{{comment.get_image_url}}" width="200px"> <br>
+                            <h6>{{ comment.created_at }}</h6>
                         </div>
                     </div>
                 {% endfor %}
@@ -126,7 +129,9 @@
                         <div class="media card p-4 mt-2">
                             <div class="media-body">
                                 <h3 class="mt-0">{{ comment.name }}</h3>
-                                {{ comment.comment }}
+                                {{ comment.message }} <br>
+                                <img src="{{comment.get_image_url}}" width="200px"> <br>
+                                <h6>{{ comment.created_at }}</h6>
                             </div>
                         </div>
                     {% endfor %}
@@ -161,21 +166,39 @@
                             <h3>Add Comment</h3>
                         </div>
                         
-                        <form method="POST" action="{% url 'app:create_comment' product.id %}" id="commentForm">
+                        <form method="POST" enctype="multipart/form-data" action="{% url 'app:create_comment' product.id %}" id="commentForm">
                             {% csrf_token %}
 			                <div class="form-group mb-3">
+                                <label for="formGroupExampleInput2">Select Rating:</label>
+                                <select name="rating" id="rating" required>
+                                    <option value="">...</option>
+                                    <option value="1">⭐ 1</option>
+                                    <option value="2">⭐⭐ 2</option>
+                                    <option value="3">⭐⭐⭐ 3</option>
+                                    <option value="4">⭐⭐⭐⭐ 4</option>
+                                    <option value="5">⭐⭐⭐⭐⭐ 5</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group mb-3">
                                 <label for="formGroupExampleInput2">Your name</label>
                                 <input type="text" name="name" class="form-control"  placeholder="Your name">
                             </div>
                             
                             <div class="form-group mb-3">
                                 <label for="formGroupExampleInput2">Your email</label>
-                                <input type="text" name="email" class="form-control" placeholder="Your email">
+                                <input type="email" name="email" class="form-control" placeholder="Your email">
                             </div>
 
                             <div class="form-group mb-3">
                                 <label for="formGroupExampleInput2">Your comment</label>
-                                <textarea name="comment" class="form-control" id="id_comment" cols="30" rows="10"></textarea>
+                                <textarea name="message" class="form-control" id="id_comment" cols="30" rows="10"></textarea>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="image-upload" class="img-label">Upload Image:</label>
+                                <input type="file" id="image-upload" name="image" accept="image/*" required>
+                                <img id="preview-image" class="preview-img" src="#" alt="Preview..." style="display:none;">
                             </div>
 
                             <div class="form-group mb-3">
@@ -198,101 +221,29 @@
             <div class="container px-4 px-lg-5 mt-5">
                 <h2 class="fw-bolder mb-4">Related products</h2>
                 <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+                
+                {% for p in related_products %}
                     <div class="col mb-5">
                         <div class="card h-100">
                             <!-- Product image-->
                             <img class="card-img-top" 
-                            src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg" alt="..." />
+                            src="{{p.get_image_url}}" alt="..." />
                             <!-- Product details-->
                             <div class="card-body p-4">
                                 <div class="text-center">
                                     <!-- Product name-->
-                                    <h5 class="fw-bolder">Fancy Product</h5>
+                                    <h5 class="fw-bolder">{{p.name}}</h5>
                                     <!-- Product price-->
-                                    $40.00 - $80.00
+                                    {{p.price}}
                                 </div>
                             </div>
                             <!-- Product actions-->
                             <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="detail.html">View product</a></div>
-
-                        
+                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="{% url 'app:detail' p.id %}">View product</a></div>
                             </div>
                         </div>
                     </div>
-
-                  
-
-                    <div class="col mb-5">
-                        <div class="card h-100">
-                            <!-- Product image-->
-                            <img class="card-img-top" 
-                            src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg" alt="..." />
-                            <!-- Product details-->
-                            <div class="card-body p-4">
-                                <div class="text-center">
-                                    <!-- Product name-->
-                                    <h5 class="fw-bolder">Fancy Product</h5>
-                                    <!-- Product price-->
-                                    $40.00 - $80.00
-                                </div>
-                            </div>
-                            <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="detail.html">View product</a></div>
-
-                        
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col mb-5">
-                        <div class="card h-100">
-                            <!-- Product image-->
-                            <img class="card-img-top" 
-                            src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg" alt="..." />
-                            <!-- Product details-->
-                            <div class="card-body p-4">
-                                <div class="text-center">
-                                    <!-- Product name-->
-                                    <h5 class="fw-bolder">Fancy Product</h5>
-                                    <!-- Product price-->
-                                    $40.00 - $80.00
-                                </div>
-                            </div>
-                            <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="detail.html">View product</a></div>
-
-                        
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col mb-5">
-                        <div class="card h-100">
-                            <!-- Product image-->
-                            <img class="card-img-top" 
-                            src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg" alt="..." />
-                            <!-- Product details-->
-                            <div class="card-body p-4">
-                                <div class="text-center">
-                                    <!-- Product name-->
-                                    <h5 class="fw-bolder">Fancy Product</h5>
-                                    <!-- Product price-->
-                                    $40.00 - $80.00
-                                </div>
-                            </div>
-                            <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="detail.html">View product</a></div>
-
-                        
-                            </div>
-                        </div>
-                    </div>
-
-
+                {% endfor %}   
 
                 </div>
             </div>
