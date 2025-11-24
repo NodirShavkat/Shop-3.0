@@ -2,8 +2,6 @@ from django.db import models
 from decimal import Decimal
 from django.templatetags.static import static
 
-
-
 # Create your models here.
 class BaseModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -11,7 +9,6 @@ class BaseModel(models.Model):
     
     class Meta:
         abstract = True
-
 
 class Category(BaseModel):
     title = models.CharField(max_length=255, unique=True)
@@ -21,9 +18,6 @@ class Category(BaseModel):
     
     class Meta:
         verbose_name_plural = 'Categories'
-
-
-# DRF => Don't repeat yourself
 
 class Product(BaseModel):
     name = models.CharField(max_length=255)
@@ -45,8 +39,7 @@ class Product(BaseModel):
             return self.price * Decimal(f'{(1 - self.discount / 100)}')
         
         return self.price
-    
-    
+        
     @property
     def get_image_url(self):
         if not self.image:
@@ -55,19 +48,6 @@ class Product(BaseModel):
     
     def __str__(self):
         return self.name
-
-# 10_000
- 
-# 50% 
-
-# discounted_price = price * (1 - discount/ 100)
-
-# Product.objects.all(category = category_id)
-
-# smartfonlar = Category()
-
-# smartfonlar.products.all()
-
 
 class Order(BaseModel):
     name = models.CharField(max_length=255)
